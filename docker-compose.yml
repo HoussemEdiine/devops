@@ -1,0 +1,76 @@
+version: "3"
+
+services:
+
+
+  jenkins:
+         image: jenkinsci/blueocean:latest
+         privileged: true
+         user: root
+         ports:
+                 - 8080:8080
+                 - 50000:50000
+         container_name: jenkins
+         volumes:
+                 - /home/${myname}/jenkins_compose/jenkins_configuration:/var/jenkins_home
+                 - /var/run/docker.sock:/var/run/docker.sock
+                 - /home/${myname}/agent/jvm/bin
+            
+  sonar:
+         container_name: sonar
+         image: sonarqube
+         restart: unless-stopped
+         ports:
+
+                 - 9000:9000
+                 - 9092:9092
+      
+                 
+                 
+         depends_on:
+                 - mysqldb
+                                                
+
+
+
+
+  mysqldb:
+         container_name: mysqldb
+         image: mysql:8
+         environment:
+                 MYSQL_ROOT_PASSWORD: admin
+         ports:
+                 - 3306:3306
+         volumes:
+                 - /home/mysqldata:/var/lib/msql
+  spring_app:
+         image: tpachat
+         container_name: achatproject
+         restart : on-failure
+         ports:
+                 - 8089:8089
+         depends_on:
+                 - mysqldb
+
+  agent:
+         image: jenkins/ssh-agent:jdk11
+         privileged: true
+         user: jenkins
+         container_name: agent
+         ports:
+
+                 -  22:22
+                  
+         environment:
+               - JENKINS_AGENT_SSH_PUBKEY=ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCkcQeB166FQbWHtHQ+JlZtdhu/iCVGOUZEsukqxRqcjFOSuSJNE4HmmfCjhPiP6l6oQP4gWhUWSlaYzdEbLVKpchIc0+5HEaL2RPkje1MuiwMdqpYYjYUidYJLXb9+4IkbVDCeQNBQAYSfYfLvapWr0ktnJdYsY2IKguk8D/GbZWU4vokFpwX20bJV/XhBMrSWvwSaCeQd9ne3NsH0HE1i+YuLw1XFcJHtXkldoOpEA6ZsgiKf13M40N9Hy5PDejD4avafxtv0Edjs+wMjMzctawv8GMu0V7G00rMsxhJGUqsYzJZlnugyOrXbU9/8Lddxkh25c3AnYYnLQhOSDSh7HD6TPleYUZcAQ/VNAUyoyXgfS28WG7lq/XHFme+7ak/O+g+9RbnU5Zl5+29o+9oEO1wFu++hcsKLxJ2W7cRQ5c2Q3h4VtBywWVDrLclee6mIU3OAUDM78gJe1wtZ0ZSsB3cobLBgd6+2T2IZE6jvcoApN7HMZEV/VRYm6ONef1s= root@ubuntu-focal
+
+
+
+
+
+
+
+
+
+
+
